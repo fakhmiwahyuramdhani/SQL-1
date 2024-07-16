@@ -1,0 +1,83 @@
+﻿create database lentera_food_50421459;
+use lentera_food_50421459
+
+--1--
+create table persediaan_barang(
+ID_Barang varchar (10),
+Nama_Barang varchar (20),
+Jumlah varchar (10),
+Tanggal_Masuk date,
+Tanggal_Keluar date);
+
+insert into persediaan_barang values
+('A0201', 'Tepung Jagung', '1 Ton', '2016-12-10', '2016-12-15'),
+('A0202', 'Minyak Goreng', '1000 Liter', '2016-12-11', '2016-12-20'),
+('F0203', 'Gula', '4 Ton', '2016-12-5', '2016-12-10'),
+('S0201', 'Gandum', '3 Ton', '2016-12-08', '2016-12-10'),
+('D0202', 'Tepung Beras', '3 Ton', '2016-12-10', '2016-12-16');
+
+select * from persediaan_barang
+
+--3--
+create table data_pegawai(
+NIP varchar (20),
+NAMA varchar (30),
+TEMPAT_LAHIR varchar (10),
+TGL_LAHIR date,
+ALAMAT varchar (20),
+DIVISI varchar (20),
+Gaji varchar (20));
+
+insert into data_pegawai values
+('53210985', 'Dio Susilo', 'Bogor', '1992-08-16', 'Jl. Kenari', 'Accounting', '2000'),
+('18111525', 'Hardi', 'Jakarta', '1993-07-11', 'Jl. Lereng', 'HRD', '1500'),
+('52409380', 'Fadel Andreza', 'Depok', '1992-08-12', 'Jl. Melati', 'Staff IT', '2000'),
+('18110000', 'Firmansyah', 'Bogor', '1993-11-10', 'Jl. Dahlia', 'Finance', '1000'),
+('19283332', 'Dimas Hadi', 'Bekasi', '1994-09-11', 'Jl. Delima', 'HRD', '1000');
+
+select * from data_pegawai
+
+--4--
+SP_ADDMESSAGE 50680, 11, 'MOHON MAAF, TANGGAL YANG ANDA INPUT LEBIH KECIL DARI TANGGAL MASUK SILAHKAN ANDA PERBAIKI',
+'us_english', 'true'
+
+select * from sys.messages
+
+--5--
+CREATE TRIGGER logistik_alert
+ON Persediaan_Barang
+FOR INSERT
+AS
+BEGIN
+    DECLARE @brg_masuk DATE
+    DECLARE @brg_keluar DATE
+
+    SELECT @brg_masuk = Tanggal_Masuk FROM inserted
+    SELECT @brg_keluar = Tanggal_Keluar FROM inserted
+
+    IF @brg_keluar < @brg_masuk
+    BEGIN
+        RAISERROR ('Tanggal keluar tidak boleh lebih awal dari tanggal masuk.', 16, 1);
+        ROLLBACK TRANSACTION; -- Optional: Rollback the transaction if needed
+        RETURN;
+    END
+END;
+
+--6--
+insert into Persediaan_Barang Values
+('E0102', 'Tepung', '2 Ton', '2016-12-23', '2016-12-16');
+
+--7--
+Create view V_Data_Peg as select
+NIP, NAMA as NAME, TEMPAT_LAHIR, TGL_LAHIR, ALAMAT as ADDRESS, DIVISI as DIVISION
+FROM Data_Pegawai;
+
+select  * from V_Data_Peg;
+
+--8--
+if (select COUNT (*) from Data_Pegawai where GAJI < 1500)>2
+print 'Gaji perusahaan masih dibawah standar'
+else begin
+print 'Berikut adalah karyawan yang memiliki gaji diatas standar'
+select NAMA, GAJI FROM Data_Pegawai WHERE gaji > 1500
+end
